@@ -13,7 +13,7 @@ def generate_alt_text(image_path: str) -> str:
     try:
         prompt = f"Write a short, descriptive alt text for an image file: {image_path}"
         response = client.chat.completions.create(
-            model="gpt-5-nano",
+            model="gpt-4.1-mini",
             messages=[{"role": "user", "content": prompt}],
         )
         return response.choices[0].message.content.strip()
