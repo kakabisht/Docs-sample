@@ -30,7 +30,6 @@ for root, _, files in os.walk("."):
 
             # --- Replace function for regex ---
             def replace(match):
-                nonlocal has_suggestions
                 has_suggestions = True
                 image_path = match.group(1)
 
