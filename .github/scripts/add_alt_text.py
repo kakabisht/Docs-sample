@@ -15,7 +15,6 @@ def generate_alt_text(image_path: str) -> str:
         response = openai.chat.completions.create(
             model="gpt-5-nano",
             messages=[{"role": "user", "content": prompt}],
-            max_tokens=50,
         )
         return response.choices[0].message["content"].strip()
     except Exception as e:
