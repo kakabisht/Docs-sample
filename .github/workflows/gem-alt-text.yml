@@ -31,4 +31,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           GITHUB_REPOSITORY: ${{ github.repository }}
-        run: python .github/scripts/suggest_alt_text.py
+        run: python .github/scripts/add_alt_text.py
