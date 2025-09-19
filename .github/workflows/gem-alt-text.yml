@@ -37,10 +37,13 @@ jobs:
         env:
           PAT_TOKEN: ${{ secrets.PAT_TOKEN }}  # Must be a PAT with repo scope
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add .
-          git diff-index --quiet HEAD || \
-          git commit -m "Add generated alt text to markdown images"
-          git remote set-url origin https://x-access-token:${PAT_TOKEN}@github.com/${{ github.repository }}.git
-          git push origin HEAD:${{ github.ref_name }}
+            git config --global user.name "github-actions[bot]"
+            
+            git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+            git add .
+            git diff-index --quiet HEAD || git commit -m "Add generated alt text to markdown images"
+            # Force the remote to use PAT for authentication
+            git remote set-url origin https://x-access-token:${PAT_TOKEN}@github.com/${{ github.repository }}.git
+            # Use HEAD:<branch> to push back safely
+            git push origin HEAD:${GITHUB_REF#refs/heads/}
