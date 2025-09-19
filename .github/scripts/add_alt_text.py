@@ -13,7 +13,7 @@ def generate_alt_text(image_path):
     )
     return response.text.strip()
 
-# Regex to capture markdown image syntax ![](image.png) or [](image.png)
+# Regex to capture markdown images: ![](image.png)
 image_pattern = re.compile(r'!\[\]\(([^)]+)\)')
 
 for root, _, files in os.walk("."):
