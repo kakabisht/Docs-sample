@@ -5,6 +5,10 @@ on:
     paths:
       - "**/*.md"
 
+permissions:
+  contents: write      # for pushing commits
+  pull-requests: write # for adding PR comments / suggestions
+
 jobs:
   suggest-alt-text:
     runs-on: ubuntu-latest
