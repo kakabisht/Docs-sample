@@ -4,6 +4,10 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
 
+permissions:
+  contents: write      # for pushing commits
+  pull-requests: write # for adding PR comments / suggestions
+
 jobs:
   alt-text:
     runs-on: ubuntu-latest
