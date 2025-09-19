@@ -1,0 +1,22 @@
+name: Check Links
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  link-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Run link checker
+        uses: lycheeverse/lychee-action@v1
+        with:
+          # Look for links in all Markdown files
+          args: --verbose './**/*.md'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
