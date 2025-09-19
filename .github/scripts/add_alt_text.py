@@ -2,16 +2,17 @@ import os
 import re
 from openai import OpenAI
 
+# Load API key from environment
 api_key = os.getenv("OPENAI_API_KEY")
+
 if not api_key:
-    print("❌ OPENAI_API_KEY not found in environment")
-else:
-    print(f"✅ OPENAI_API_KEY loaded, ending with: {api_key[-4:]}")
+    raise ValueError("❌ OPENAI_API_KEY not found in environment")
 
+# Initialize OpenAI client
+client = OpenAI(api_key=api_key)
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
-def generate_alt_text(image_path):
+# Function to generate alt text for an image
+def generate_alt_text(image_path: str) -> str:
     prompt = f"Generate a concise alt text for an image file named {image_path}. Assume it's part of developer documentation."
     response = client.chat.completions.create(
         model="gpt-4o-mini",
@@ -20,9 +21,10 @@ def generate_alt_text(image_path):
     )
     return response.choices[0].message["content"].strip()
 
-# Regex to capture markdown image syntax ![](image.png) or [](image.png)
+# Regex to capture markdown images: ![](image.png)
 image_pattern = re.compile(r'!\[\]\(([^)]+)\)')
 
+# Walk through all markdown files
 for root, _, files in os.walk("."):
     for file in files:
         if file.endswith(".md"):
