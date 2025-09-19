@@ -16,7 +16,7 @@ def generate_alt_text(image_path: str) -> str:
             model="gpt-5-nano",
             messages=[{"role": "user", "content": prompt}],
         )
-        return response.choices[0].message["content"].strip()
+        return response.choices[0].message.content.strip()
     except Exception as e:
         print(f"⚠️ Error generating alt text for {image_path}: {e}")
         return None
