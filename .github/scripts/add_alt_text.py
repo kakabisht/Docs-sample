@@ -2,19 +2,21 @@ import os
 import re
 from openai import OpenAI
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
-if not client:
+api_key = os.getenv("OPENAI_API_KEY")
+if not api_key:
     print("❌ OPENAI_API_KEY not found in environment")
 else:
-    print(f"✅ OPENAI_API_KEY loaded, ending with: {client[-4:]}")
+    print(f"✅ OPENAI_API_KEY loaded, ending with: {api_key[-4:]}")
+
+
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 def generate_alt_text(image_path):
     prompt = f"Generate a concise alt text for an image file named {image_path}. Assume it's part of developer documentation."
-    response = openai.chat.completions.create(
-        model="gpt-5-nano",
-        input=prompt,
-        store=True
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[{"role": "user", "content": prompt}],
+        max_tokens=50
     )
     return response.choices[0].message["content"].strip()
 

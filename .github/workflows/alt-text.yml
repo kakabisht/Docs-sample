@@ -18,7 +18,7 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install openai markdown
+        run: pip install --upgrade openai markdown
 
       - name: Add alt text to markdown files
         env:
