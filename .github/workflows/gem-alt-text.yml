@@ -1,21 +1,19 @@
-name: Generate Alt Text (Gemini)
+name: Suggest Alt Text (Gemini)
 
 on:
-  push:
+  pull_request:
     paths:
-      - "**/*.md"  # Trigger when any markdown file changes
+      - "**/*.md"  # Trigger when markdown files change in a PR
 
 jobs:
-  add-alt-text:
+  suggest-alt-text:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout the repo and ensure we are on the correct branch
+      # 1️⃣ Checkout the repo
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # fetch full history to allow commits
-          
+
       # 2️⃣ Set up Python
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -24,26 +22,13 @@ jobs:
 
       # 3️⃣ Install dependencies
       - name: Install dependencies
-        run: pip install google-genai markdown
+        run: pip install google-genai markdown PyGithub
 
-      # 4️⃣ Run Python script to add alt text
-      - name: Add alt text to markdown files
+      # 4️⃣ Run Python script to generate suggested changes
+      - name: Generate alt text suggestions
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        run: python .github/scripts/add_alt_text.py
-
-      # 5️⃣ Commit and push changes using a Personal Access Token
-      - name: Commit and push changes
-        env:
-          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}  # Must be a PAT with repo scope
-        run: |
-            git config --global user.name "github-actions[bot]"
-            
-            git config --global user.email "github-actions[bot]@users.noreply.github.com"
-
-            git add .
-            git diff-index --quiet HEAD || git commit -m "Add generated alt text to markdown images"
-            # Force the remote to use PAT for authentication
-            git remote set-url origin https://x-access-token:${PAT_TOKEN}@github.com/${{ github.repository }}.git
-            # Use HEAD:<branch> to push back safely
-            git push origin HEAD:${GITHUB_REF#refs/heads/}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: python .github/scripts/suggest_alt_text.py
