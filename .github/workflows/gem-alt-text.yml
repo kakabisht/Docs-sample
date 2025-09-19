@@ -1,7 +1,7 @@
 name: Generate Alt Text
 
 on:
-  pull_request:
+  push:
     paths:
       - "**/*.md"  # Only run when markdown files change
 
