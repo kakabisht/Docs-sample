@@ -1,55 +1,94 @@
 import os
 import re
-from google import genai
+import openai
 from github import Github
 
-# Initialize Gemini client
-client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+# Load OpenAI API key
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# Regex to detect images without alt text
-image_pattern = re.compile(r'!\[\]\(([^)]+)\)')
+def generate_alt_text(image_path: str) -> str:
+    """
+    Generate alt text for an image path using OpenAI GPT-5-nano.
+    """
+    try:
+        prompt = f"Write a short, descriptive alt text for an image file: {image_path}"
+        response = openai.chat.completions.create(
+            model="gpt-5-nano",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=50,
+        )
+        return response.choices[0].message["content"].strip()
+    except Exception as e:
+        print(f"⚠️ Error generating alt text for {image_path}: {e}")
+        return None
 
-# Load markdown files from PR changed files
-pr_number = int(os.getenv("PR_NUMBER"))
-repo_name = os.getenv("GITHUB_REPOSITORY")
-gh = Github(os.getenv("GITHUB_TOKEN"))
-repo = gh.get_repo(repo_name)
-pr = repo.get_pull(pr_number)
 
-# Collect suggestions
-suggestion_comment = "### Suggested Alt Text Changes\n\n```diff\n"
-has_suggestions = False
+def suggest_alt_text_for_file(file_path: str):
+    """
+    Parse a markdown file and suggest alt text for images without alt text.
+    Returns a list of (line_number, old_line, new_line).
+    """
+    suggestions = []
+    image_pattern = re.compile(r'!\[\]\((.*?)\)')
 
-for file in pr.get_files():
-    if file.filename.endswith(".md"):
-        # Read file content from PR patch if possible
-        content = file.patch or ""
+    with open(file_path, "r", encoding="utf-8") as f:
+        lines = f.readlines()
 
-        def replace(match):
-            nonlocal has_suggestions
-            has_suggestions = True
+    for i, line in enumerate(lines):
+        match = image_pattern.search(line)
+        if match:
             image_path = match.group(1)
-            # Generate alt text
-            prompt = f"Generate a concise alt text for an image file named {image_path} in developer documentation."
-            alt_text = client.models.generate_content(
-                model="gemini-2.5-flash",
-                contents=prompt
-            ).text.strip()
-            # Suggest diff
-            return f"+ ![{alt_text}]({image_path})"
+            alt_text = generate_alt_text(image_path)
+            if alt_text:
+                new_line = line.replace(f"![]({image_path})", f"![{alt_text}]({image_path})")
+                suggestions.append((i + 1, line.strip(), new_line.strip()))
 
-        new_content = image_pattern.sub(replace, content)
-        if has_suggestions:
-            # Add the original line for diff formatting
-            for match in image_pattern.findall(content):
-                suggestion_comment += f"- ![]({match})\n"
-            suggestion_comment += new_content + "\n"
+    return suggestions
 
-suggestion_comment += "```"
 
-# Post comment if any suggestions
-if has_suggestions:
-    pr.create_issue_comment(suggestion_comment)
-    print("✅ Suggestions posted to PR")
-else:
-    print("ℹ️ No alt text suggestions needed")
+def post_suggestions_as_review(repo_name, pr_number, suggestions):
+    """
+    Post suggestions as a GitHub PR review.
+    """
+    gh = Github(os.getenv("GITHUB_TOKEN"))
+    repo = gh.get_repo(repo_name)
+    pr = repo.get_pull(int(pr_number))
+
+    comments = []
+    for file_path, file_suggestions in suggestions.items():
+        for line_number, old_line, new_line in file_suggestions:
+            comments.append({
+                "path": file_path,
+                "position": line_number,
+                "body": f"💡 Suggestion: Replace\n```markdown\n{old_line}\n```\nwith\n```markdown\n{new_line}\n```"
+            })
+
+    if comments:
+        pr.create_review(
+            body="🤖 Suggested alt text improvements for images",
+            event="COMMENT",
+            comments=comments
+        )
+        print("✅ Posted alt text suggestions as a PR review.")
+    else:
+        print("ℹ️ No alt text suggestions needed.")
+
+
+if __name__ == "__main__":
+    repo_name = os.getenv("GITHUB_REPOSITORY")
+    pr_number = os.getenv("PR_NUMBER")
+
+    # Collect suggestions
+    suggestions = {}
+    for root, _, files in os.walk("."):
+        for file in files:
+            if file.endswith(".md"):
+                file_path = os.path.join(root, file)
+                file_suggestions = suggest_alt_text_for_file(file_path)
+                if file_suggestions:
+                    suggestions[file_path] = file_suggestions
+
+    if suggestions:
+        post_suggestions_as_review(repo_name, pr_number, suggestions)
+    else:
+        print("ℹ️ No alt text suggestions generated.")

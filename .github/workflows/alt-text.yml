@@ -1,35 +1,29 @@
-name: Generate Alt Text
+name: Suggest Alt Text for Images
 
 on:
   pull_request:
     paths:
-      - "**/*.md"  # Only run when markdown files change
+      - "**/*.md"
 
 jobs:
-  add-alt-text:
+  suggest-alt-text:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
       - name: Install dependencies
-        run: pip install google-genai markdown
+        run: pip install openai pygithub
 
-      - name: Add alt text to markdown files
+      - name: Suggest Alt Text
         env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        run: |
-          python .github/scripts/add_alt_text.py
-
-      - name: Commit changes
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add .
-          git commit -m "Add generated alt text to markdown images" || echo "No changes to commit"
-          git push
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: python .github/scripts/add_alt_text.py
