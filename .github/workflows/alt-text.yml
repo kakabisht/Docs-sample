@@ -23,8 +23,7 @@ jobs:
       - name: Add alt text to markdown files
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        run: |
-          python .github/scripts/add_alt_text.py
+        run: python .github/scripts/add_alt_text.py
 
       - name: Commit changes
         run: |
