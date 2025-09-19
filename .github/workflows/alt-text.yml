@@ -1,15 +1,14 @@
-name: Suggest Alt Text for Images
+name: Alt Text Suggestions
 
 on:
   pull_request:
-    paths:
-      - "**/*.md"
+    types: [opened, synchronize, reopened]
 
 jobs:
-  suggest-alt-text:
+  alt-text:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Set up Python
@@ -18,12 +17,13 @@ jobs:
           python-version: "3.11"
 
       - name: Install dependencies
-        run: pip install openai pygithub
+        run: |
+          pip install PyGithub openai
 
-      - name: Suggest Alt Text
+      - name: Run alt text suggestion script
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
           GITHUB_REPOSITORY: ${{ github.repository }}
-        run: python .github/scripts/add_alt_text.py
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: python .github/scripts/suggest_alt_text.py
