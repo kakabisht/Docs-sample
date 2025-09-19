@@ -26,7 +26,6 @@ for file in pr.get_files():
         content = file.patch or ""
 
         def replace(match):
-            nonlocal has_suggestions
             has_suggestions = True
             image_path = match.group(1)
             # Generate alt text
