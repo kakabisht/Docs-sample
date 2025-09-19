@@ -15,7 +15,7 @@ client = OpenAI(api_key=api_key)
 def generate_alt_text(image_path: str) -> str:
     prompt = f"Generate a concise alt text for an image file named {image_path}. Assume it's part of developer documentation."
     response = client.chat.completions.create(
-        model="gpt-4o-mini",
+        model="gpt-4o",
         messages=[{"role": "user", "content": prompt}],
         max_tokens=50
     )
