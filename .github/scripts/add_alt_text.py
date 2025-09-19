@@ -46,7 +46,7 @@ def suggest_alt_texts_in_file(filepath: str):
 
 def post_suggestions_as_review(repo_name: str, pr_number: int, suggestions: dict):
     """Posts review comments to the PR with suggested alt text replacements."""
-    token = os.getenv("GITHUB_TOKEN")
+    token = os.getenv("PAT_TOKEN")
     auth = Auth.Token(token)
     gh = Github(auth=auth)
     repo = gh.get_repo(repo_name)
@@ -63,10 +63,8 @@ def post_suggestions_as_review(repo_name: str, pr_number: int, suggestions: dict
             body += f"- `{original}` → `{suggested}`\n"
         body += "\n"
 
-    pr.create_review(
-        body=body,
-        event="COMMENT"
-    )
+    pr.create_issue_comment(body)
+
     print("✅ Suggestions posted to PR review")
 
 if __name__ == "__main__":
