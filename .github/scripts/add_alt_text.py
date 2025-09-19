@@ -7,7 +7,7 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 if not client:
     print("❌ OPENAI_API_KEY not found in environment")
 else:
-    print(f"✅ OPENAI_API_KEY loaded, ending with: {key[-4:]}")
+    print(f"✅ OPENAI_API_KEY loaded, ending with: {client[-4:]}")
 
 def generate_alt_text(image_path):
     prompt = f"Generate a concise alt text for an image file named {image_path}. Assume it's part of developer documentation."
